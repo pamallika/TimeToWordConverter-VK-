@@ -1,0 +1,17 @@
+{
+    "name": "influence/time-to-word-converter",
+    "autoload": {
+        "psr-4": {
+            "src\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Alexandr Fedorenko",
+            "email": "sasha.fedorenko4736@gmail.com"
+        }
+    ],
+    "require": {
+        "ext-mbstring": "*"
+    }
+}
