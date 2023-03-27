@@ -8,6 +8,12 @@ class TimeToWordConverter implements TimeToWordConvertingInterface
 {
     public function convert(int $hours, int $minutes): string
     {
+        if ($hours < 0 || $minutes < 0) {
+            return 'Некоректное время';
+        }
+        if ($hours > 24 || $minutes > 60) {
+            return 'Некоректное время';
+        }
         //В условиях задания указано что на вход будет не более 12 часов, поэтому проверяю именно так
         //Также легко можно реализовать решение и с 24 часами, if ($hours > 12) -> $hours - 12
         //И это число уже можно передать в мапу(dictionary) и получить ответ.
@@ -16,31 +22,43 @@ class TimeToWordConverter implements TimeToWordConvertingInterface
             $remained = $minutes;
             $nextHour = $hours;
             $before = false;
-            //Обработка исключений
-            if ($minutes === 30) {
-                $hourStr = $dictionary->getDictionaryHalfHours($hours + 1);
-                return  "Половина $hourStr";
+
+            switch ($minutes) {
+                case 0 :
+                    if ($hours === 1) {
+                        $postfix = 'час';
+                    } elseif ($hours < 5 && $hours !== 0) {
+                        $postfix = 'часа';
+                    } else {
+                        $postfix = 'часов';
+                    }
+                    $TimeStr = mb_convert_case($dictionary->getDictionaryTotalHours($hours), MB_CASE_TITLE, "UTF-8");
+                    return "$TimeStr $postfix";
+                case 30:
+                    $hourStr = $dictionary->getDictionaryHalfHours($hours + 1);
+                    return "Половина $hourStr";
+                case 60:
+                    $hours = $hours + 1;
+                    if ($hours === 1) {
+                        $postfix = 'час';
+                    } elseif ($hours < 5 && $hours !== 0) {
+                        $postfix = 'часа';
+                    } else {
+                        $postfix = 'часов';
+                    }
+                    $TimeStr = mb_convert_case($dictionary->getDictionaryTotalHours($hours), MB_CASE_TITLE, "UTF-8");
+                    return "$TimeStr $postfix";
+                case $minutes > 30:
+                    /** @var bool $before
+                     * Флаг обозначающий половину часа
+                     */
+                    $before = true;
+                    $remained = 60 - $minutes;
+                    $nextHour++;
+                    break;
+
             }
-            if ($minutes === 0) {
-                if ($hours === 1) {
-                    $postfix = 'час';
-                } elseif ($hours < 5 && $hours !== 0) {
-                    $postfix = 'часа';
-                } else {
-                    $postfix = 'часов';
-                }
-                $TimeStr = mb_convert_case($dictionary->getDictionaryTotalHours($hours), MB_CASE_TITLE, "UTF-8");
-                return "$TimeStr $postfix";
-            }
-            //Обработка минут
-            if ($minutes > 30) {
-                /** @var bool $before
-                Флаг обозначающий половину часа
-                 */
-                $remained = 60 - $minutes;
-                $before = true;
-                $nextHour++;
-            }
+
             if ($remained < 20) {
                 $minutesStr = $dictionary->dictionaryMinutes($remained);
                 $minutesStr = mb_convert_case($minutesStr, MB_CASE_TITLE, "UTF-8");
@@ -59,7 +77,7 @@ class TimeToWordConverter implements TimeToWordConvertingInterface
             //Обработка часов
             $hoursStr = $dictionary->getHours($nextHour, $before);
 
-            if($remained > 4){
+            if ($remained > 4) {
                 $minutesStr = "$minutesStr минут";
             } elseif ($remained === 1) {
                 $minutesStr = "$minutesStr минута";
@@ -67,9 +85,9 @@ class TimeToWordConverter implements TimeToWordConvertingInterface
                 $minutesStr = "$minutesStr минуты";
             }
             if ($minutes > 30) {
-                $TimeStr = $minutesStr." до $hoursStr";
+                $TimeStr = $minutesStr . " до $hoursStr";
             } else {
-                $TimeStr = $minutesStr." после $hoursStr";
+                $TimeStr = $minutesStr . " после $hoursStr";
             }
             return $TimeStr;
         } catch (\Error $message) {
