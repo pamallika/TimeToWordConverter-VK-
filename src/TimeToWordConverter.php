@@ -2,17 +2,21 @@
 
 namespace src;
 
-use src\exception\BaseException as Exception;
+use src\Exceptions\DateTimeException;
+use src\Exceptions\Exception;
 
 class TimeToWordConverter implements TimeToWordConvertingInterface
 {
+    /**
+     * @throws Exception
+     */
     public function convert(int $hours, int $minutes): string
     {
         if ($hours < 0 || $minutes < 0) {
-            return 'Некоректное время';
+            throw new DateTimeException("Некорректное время");
         }
         if ($hours > 24 || $minutes > 60) {
-            return 'Некоректное время';
+            throw new DateTimeException("Некорректное время");
         }
         //В условиях задания указано что на вход будет не более 12 часов, поэтому проверяю именно так
         //Также легко можно реализовать решение и с 24 часами, if ($hours > 12) -> $hours - 12
@@ -39,6 +43,9 @@ class TimeToWordConverter implements TimeToWordConvertingInterface
                     return "Половина $hourStr";
                 case 60:
                     $hours = $hours + 1;
+                    //Решил не выносить за switch, т.к. может повториться только в двух случаях
+                    //case = 0 || 60 не сработает т.к. для 60 нужно $hours + 1
+                    //Думаю пусть лучше небольшой участок кода повторится, чем в case 0 || 60 добавлять проверку на 60
                     if ($hours === 1) {
                         $postfix = 'час';
                     } elseif ($hours < 5 && $hours !== 0) {
@@ -63,7 +70,7 @@ class TimeToWordConverter implements TimeToWordConvertingInterface
                 $minutesStr = $dictionary->dictionaryMinutes($remained);
                 $minutesStr = mb_convert_case($minutesStr, MB_CASE_TITLE, "UTF-8");
             } else {
-                //Из int минут делаю array чтобы отделить десятки и минуты и передаю их в мапу
+                //Из int минут делаю array, чтобы отделить десятки и минуты и передаю их в мапу
                 $minutesArr = str_split($remained);
                 $minutesTen = $minutesArr[0] * 10;
                 $minute = $minutesArr[1];
@@ -91,7 +98,7 @@ class TimeToWordConverter implements TimeToWordConvertingInterface
             }
             return $TimeStr;
         } catch (\Error $message) {
-            return 'Некоректное время';
+            throw new DateTimeException("Некорректное время");
         }
     }
 }

@@ -1,7 +1,8 @@
 <?php
-require __DIR__.'/vendor/autoload.php';
+require __DIR__ . '/vendor/autoload.php';
+
 use src\TimeToWordConverter;
 
 $time = new TimeToWordConverter();
 
-echo $time->convert(0,0);
+echo $time->convert(0, 0);
